@@ -1,0 +1,43 @@
+export const ERROR_CODES = [
+  "VALIDATION_ERROR",
+  "UNAUTHENTICATED",
+  "UNAUTHORIZED",
+  "NOT_FOUND",
+  "RESERVATION_CONFLICT",
+  "SEAT_UNAVAILABLE",
+  "HOLD_EXPIRED",
+  "HOLD_NOT_FOUND",
+  "CAPACITY_EXCEEDED",
+  "OUTSIDE_OPENING_HOURS",
+  "INVALID_STATE_TRANSITION",
+  "DUPLICATE_BILL_REQUEST",
+  "RATE_LIMITED",
+  "INTERNAL_ERROR",
+] as const;
+export type ErrorCode = (typeof ERROR_CODES)[number];
+
+export interface ApiErrorBody {
+  success: false;
+  error: {
+    code: ErrorCode;
+    message: string;
+    fieldErrors: { field: string; message: string }[];
+  };
+}
+
+export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
+  VALIDATION_ERROR: 400,
+  UNAUTHENTICATED: 401,
+  UNAUTHORIZED: 403,
+  NOT_FOUND: 404,
+  RESERVATION_CONFLICT: 409,
+  SEAT_UNAVAILABLE: 409,
+  HOLD_EXPIRED: 409,
+  HOLD_NOT_FOUND: 404,
+  CAPACITY_EXCEEDED: 422,
+  OUTSIDE_OPENING_HOURS: 422,
+  INVALID_STATE_TRANSITION: 409,
+  DUPLICATE_BILL_REQUEST: 409,
+  RATE_LIMITED: 429,
+  INTERNAL_ERROR: 500,
+};
