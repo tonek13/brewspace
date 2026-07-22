@@ -1,4 +1,46 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+
+type ButtonVariant = "primary" | "accent" | "ghost";
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  /** Shows an inline spinner and disables the button while an action is in flight. */
+  loading?: boolean;
+}
+
+/**
+ * Shared button with a built-in loading state. When `loading` is true it shows a
+ * spinner (in the current text color) and is disabled so the click can't repeat.
+ */
+export function Button({
+  variant = "primary",
+  loading = false,
+  type = "button",
+  className = "",
+  disabled,
+  children,
+  ...rest
+}: ButtonProps) {
+  const variantClass =
+    variant === "accent" ? "btn-accent" : variant === "ghost" ? "btn-ghost" : "btn-primary";
+  return (
+    <button
+      type={type}
+      className={`btn ${variantClass} ${className}`.trim()}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...rest}
+    >
+      {loading && (
+        <span
+          className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70"
+          aria-hidden="true"
+        />
+      )}
+      {children}
+    </button>
+  );
+}
 
 export function Badge({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (

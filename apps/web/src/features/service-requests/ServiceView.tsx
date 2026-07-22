@@ -57,9 +57,16 @@ export function ServiceView({ reservationId }: { reservationId: string }) {
           <button
             key={option.type}
             onClick={() => send(option.type)}
-            className="card flex flex-col items-start gap-1 p-5 text-left transition-shadow hover:shadow-lift disabled:opacity-60"
+            className="card relative flex flex-col items-start gap-1 p-5 text-left transition-shadow hover:shadow-lift disabled:opacity-60"
             disabled={working !== null}
+            aria-busy={working === option.type}
           >
+            {working === option.type && (
+              <span
+                className="absolute right-4 top-4 h-4 w-4 animate-spin rounded-full border-2 border-crema-deep border-t-transparent"
+                aria-hidden="true"
+              />
+            )}
             <span className="font-display text-lg text-ink">{option.label}</span>
             <span className="text-sm text-steam">{option.hint}</span>
           </button>

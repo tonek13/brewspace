@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReservationDto } from "@brewspace/contracts";
 import { api, ApiError } from "@/lib/api-client";
-import { Spinner, EmptyState, ErrorNote, Badge } from "@/components/ui";
+import { Spinner, EmptyState, ErrorNote, Badge, Button } from "@/components/ui";
 import { formatDateTime, reservationTone, titleCase } from "@/lib/format";
 import { useSession } from "@/features/authentication/session-context";
 
@@ -39,9 +39,9 @@ function CheckInForm({ reservation, onDone }: { reservation: ReservationDto; onD
           onChange={(e) => setCode(e.target.value)}
           maxLength={8}
         />
-        <button onClick={submit} className="btn btn-primary whitespace-nowrap" disabled={working || code.length < 4}>
-          {working ? "…" : "Check in"}
-        </button>
+        <Button onClick={submit} className="whitespace-nowrap" loading={working} disabled={code.length < 4}>
+          Check in
+        </Button>
       </div>
       <p className="text-xs text-steam">Your code: <span className="font-mono text-ink">{reservation.reservationCode}</span></p>
       {error && <ErrorNote message={error} />}
@@ -55,6 +55,7 @@ export function ReservationsView() {
   const highlight = params.get("highlight");
   const [reservations, setReservations] = useState<ReservationDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -74,11 +75,14 @@ export function ReservationsView() {
   }
 
   async function cancel(reservation: ReservationDto) {
+    setCancellingId(reservation.id);
     try {
       const updated = await api.cancelReservation(reservation.id);
       patch(updated);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not cancel.");
+    } finally {
+      setCancellingId(null);
     }
   }
 
@@ -139,7 +143,14 @@ export function ReservationsView() {
 
               {isActive && reservation.status !== "CHECKED_IN" && (
                 <div className="flex gap-2">
-                  <button onClick={() => cancel(reservation)} className="btn btn-ghost text-clay">Cancel</button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => cancel(reservation)}
+                    className="text-clay"
+                    loading={cancellingId === reservation.id}
+                  >
+                    Cancel
+                  </Button>
                 </div>
               )}
             </div>

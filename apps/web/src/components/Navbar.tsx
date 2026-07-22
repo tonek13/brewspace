@@ -1,16 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/features/authentication/session-context";
+import { Button } from "@/components/ui";
 
 export function Navbar() {
   const { user, logout } = useSession();
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
-    await logout();
-    router.push("/");
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.push("/");
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
   return (
@@ -42,9 +50,9 @@ export function Navbar() {
                   Admin
                 </Link>
               )}
-              <button onClick={handleLogout} className="btn btn-ghost ml-1">
+              <Button variant="ghost" onClick={handleLogout} className="ml-1" loading={loggingOut}>
                 Sign out
-              </button>
+              </Button>
             </>
           ) : (
             <>

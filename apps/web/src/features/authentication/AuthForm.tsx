@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "./session-context";
 import { ApiError } from "@/lib/api-client";
-import { ErrorNote } from "@/components/ui";
+import { ErrorNote, Button } from "@/components/ui";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -110,9 +110,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
           {formError && <ErrorNote message={formError} />}
 
-          <button type="submit" className="btn btn-primary mt-1 w-full py-3" disabled={isSubmitting}>
+          <Button type="submit" className="mt-1 w-full py-3" loading={isSubmitting}>
             {isSubmitting ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
-          </button>
+          </Button>
         </form>
       </div>
 

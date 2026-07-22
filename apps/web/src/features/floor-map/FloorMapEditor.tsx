@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { SeatDto } from "@brewspace/contracts";
 import { api, ApiError } from "@/lib/api-client";
-import { Spinner, ErrorNote, EmptyState } from "@/components/ui";
+import { Spinner, ErrorNote, EmptyState, Button } from "@/components/ui";
 import { titleCase } from "@/lib/format";
 import { useSession } from "@/features/authentication/session-context";
 import type { SeatAvailabilityState } from "@/lib/api-client";
@@ -23,6 +23,7 @@ export function FloorMapEditor({ branchId }: { branchId: string }) {
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [dragging, setDragging] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -56,6 +57,7 @@ export function FloorMapEditor({ branchId }: { branchId: string }) {
 
   async function save() {
     setError(null);
+    setSaving(true);
     try {
       await api.updateFloorMap(
         branchId,
@@ -76,6 +78,8 @@ export function FloorMapEditor({ branchId }: { branchId: string }) {
       setSaved(true);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not save the layout.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -92,9 +96,9 @@ export function FloorMapEditor({ branchId }: { branchId: string }) {
         </div>
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-sage">Saved</span>}
-          <button onClick={save} className="btn btn-primary" disabled={!dirty}>
-            {dirty ? "Save layout" : "No changes"}
-          </button>
+          <Button onClick={save} disabled={!dirty} loading={saving}>
+            {saving ? "Saving…" : dirty ? "Save layout" : "No changes"}
+          </Button>
         </div>
       </div>
 

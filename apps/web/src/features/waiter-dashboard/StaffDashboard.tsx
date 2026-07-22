@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ServiceRequestDto, ServiceRequestStatus, BranchDto } from "@brewspace/contracts";
 import { api, ApiError, type OrderDto } from "@/lib/api-client";
-import { Spinner, ErrorNote, EmptyState, Badge } from "@/components/ui";
+import { Spinner, ErrorNote, EmptyState, Badge, Button } from "@/components/ui";
 import { requestTone, orderTone, titleCase, formatTime, formatMoney } from "@/lib/format";
 import { useSession } from "@/features/authentication/session-context";
 import { useBranchEvents } from "@/hooks/useBranchEvents";
@@ -20,6 +20,7 @@ export function StaffDashboard() {
   const [requests, setRequests] = useState<ServiceRequestDto[]>([]);
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -42,20 +43,26 @@ export function StaffDashboard() {
   async function advanceRequest(request: ServiceRequestDto) {
     const next = NEXT_REQUEST_STATUS[request.status];
     if (!next) return;
+    setBusyId(request.id);
     try {
       const updated = await api.updateServiceRequestStatus(request.id, next.to);
       setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)).filter((r) => r.status !== "COMPLETED"));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not update request.");
+    } finally {
+      setBusyId(null);
     }
   }
 
   async function advanceOrder(order: OrderDto, to: OrderDto["status"]) {
+    setBusyId(order.id);
     try {
       const updated = await api.updateOrderStatus(order.id, to);
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)).filter((o) => o.status !== "SERVED"));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not update order.");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -103,9 +110,13 @@ export function StaffDashboard() {
                     {request.message && <p className="mt-1 text-sm text-steam">“{request.message}”</p>}
                   </div>
                   {next && (
-                    <button onClick={() => advanceRequest(request)} className="btn btn-primary whitespace-nowrap">
+                    <Button
+                      onClick={() => advanceRequest(request)}
+                      className="whitespace-nowrap"
+                      loading={busyId === request.id}
+                    >
                       {next.label}
-                    </button>
+                    </Button>
                   )}
                 </div>
               );
@@ -130,9 +141,13 @@ export function StaffDashboard() {
                     <p className="text-xs text-steam">{formatTime(order.createdAt)}</p>
                   </div>
                   {next && (
-                    <button onClick={() => advanceOrder(order, next.to)} className="btn btn-primary whitespace-nowrap">
+                    <Button
+                      onClick={() => advanceOrder(order, next.to)}
+                      className="whitespace-nowrap"
+                      loading={busyId === order.id}
+                    >
                       {next.label}
-                    </button>
+                    </Button>
                   )}
                 </div>
               );

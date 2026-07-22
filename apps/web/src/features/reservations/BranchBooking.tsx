@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type { BranchDto, SeatDto } from "@brewspace/contracts";
 import { api, ApiError, type SeatAvailabilityState, type HoldDto } from "@/lib/api-client";
-import { Spinner, ErrorNote, Badge } from "@/components/ui";
+import { Spinner, ErrorNote, Badge, Button } from "@/components/ui";
 import { SEAT_STATE_COLORS, SEAT_STATE_LABEL, titleCase } from "@/lib/format";
 import { useSession } from "@/features/authentication/session-context";
 import { HoldCountdown } from "./HoldCountdown";
@@ -157,9 +157,9 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
           <label className="field-label" htmlFor="party">Party size</label>
           <input id="party" type="number" min={1} max={12} className="field-input" value={partySize} onChange={(e) => setPartySize(Math.max(1, Number(e.target.value)))} />
         </div>
-        <button onClick={search} className="btn btn-primary py-2.5" disabled={loading}>
+        <Button onClick={search} className="py-2.5" loading={loading}>
           {loading ? "Checking…" : "Check availability"}
-        </button>
+        </Button>
       </div>
 
       {error && <ErrorNote message={error} />}
@@ -224,9 +224,9 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
                 <div className="flex justify-between"><dt className="text-steam">Time</dt><dd className="text-ink">{startTime} · {durationMinutes / 60} hr</dd></div>
                 <div className="flex justify-between"><dt className="text-steam">Party</dt><dd className="text-ink">{partySize}</dd></div>
               </dl>
-              <button onClick={placeHold} className="btn btn-accent py-3" disabled={working}>
+              <Button variant="accent" onClick={placeHold} className="py-3" loading={working}>
                 {working ? "Holding…" : "Hold this seat"}
-              </button>
+              </Button>
               <p className="text-center text-xs text-steam">We&apos;ll hold it for 5 minutes while you confirm.</p>
             </div>
           )}
@@ -240,12 +240,12 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
               <p className="text-sm text-steam">
                 {selectedSeat?.name} is yours to confirm. The hold releases automatically when the timer runs out.
               </p>
-              <button onClick={confirm} className="btn btn-primary py-3" disabled={working}>
+              <Button onClick={confirm} className="py-3" loading={working}>
                 {working ? "Confirming…" : "Confirm reservation"}
-              </button>
-              <button onClick={releaseHold} className="btn btn-ghost py-2.5" disabled={working}>
+              </Button>
+              <Button variant="ghost" onClick={releaseHold} className="py-2.5" disabled={working}>
                 Release hold
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, type BranchMenuDto, type MenuItemDto, type OrderDto } from "@/lib/api-client";
-import { Spinner, ErrorNote, EmptyState } from "@/components/ui";
+import { Spinner, ErrorNote, EmptyState, Button } from "@/components/ui";
 import { formatMoney, orderTone, titleCase } from "@/lib/format";
 import { Badge } from "@/components/ui";
 import { useSession } from "@/features/authentication/session-context";
@@ -146,9 +146,9 @@ export function OrderView({ reservationId, branchId }: { reservationId: string; 
               <div className="flex justify-between border-t border-line pt-1 font-medium"><dt>Total</dt><dd>{formatMoney(total)}</dd></div>
             </dl>
             {error && <ErrorNote message={error} />}
-            <button onClick={placeOrder} className="btn btn-accent py-3" disabled={working}>
+            <Button variant="accent" onClick={placeOrder} className="py-3" loading={working}>
               {working ? "Placing…" : "Place order"}
-            </button>
+            </Button>
           </>
         )}
       </div>
