@@ -37,11 +37,15 @@ export class AuthController {
   }
 
   private setSessionCookie(cookie: SessionCookieJar, sessionId: string) {
+    // When the web app and API are served from different origins (production
+    // split deploy), the browser only sends the session cookie on cross-site
+    // requests if it's SameSite=None + Secure. COOKIE_SECURE gates that.
+    const crossSite = process.env.COOKIE_SECURE === "true";
     cookie[SESSION_COOKIE]?.set({
       value: sessionId,
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.COOKIE_SECURE === "true",
+      sameSite: crossSite ? "none" : "lax",
+      secure: crossSite,
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });

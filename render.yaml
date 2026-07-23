@@ -1,0 +1,24 @@
+# Render Blueprint for the BrewSpace Bun/Elysia API.
+# Postgres lives on Neon and Redis on Upstash, so this only defines the API
+# web service. Fill DATABASE_URL, REDIS_URL and CORS_ORIGIN in the dashboard.
+services:
+  - type: web
+    name: brewspace-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true # Render generates a long random secret
+      - key: DATABASE_URL
+        sync: false # paste your Neon connection string
+      - key: REDIS_URL
+        sync: false # paste your Upstash rediss:// URL
+      - key: CORS_ORIGIN
+        sync: false # set to your exact Vercel web URL
