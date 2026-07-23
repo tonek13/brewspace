@@ -10,6 +10,9 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().min(1).default("http://localhost:3000"),
   /** Public web app URL used to build password reset links. Falls back to CORS_ORIGIN. */
   APP_WEB_URL: z.string().url().optional(),
+  /** When set, transactional email is sent via Resend instead of being logged. */
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAIL_FROM: z.string().min(1).default("BrewSpace <onboarding@resend.dev>"),
   SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 });
 

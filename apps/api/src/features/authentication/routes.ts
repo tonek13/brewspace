@@ -4,7 +4,7 @@ import { redis } from "../../infrastructure/redis";
 import { DrizzleUserRepository } from "./repositories/drizzle-user-repository";
 import { SessionService } from "./services/session-service";
 import { PasswordResetService } from "./services/password-reset-service";
-import { LoggingPasswordResetMailer } from "./services/password-reset-mailer";
+import { LoggingPasswordResetMailer, ResendPasswordResetMailer } from "./services/password-reset-mailer";
 import { AuthService } from "./services/auth-service";
 import { AuthController, SESSION_COOKIE } from "./controllers/auth-controller";
 import { toErrorResponse } from "../../shared/http-response";
@@ -14,8 +14,11 @@ import { env } from "../../config/env";
 const userRepository = new DrizzleUserRepository(db);
 const sessionService = new SessionService(redis);
 const passwordResetService = new PasswordResetService(redis);
-// Swap this for a real provider adapter to send actual emails.
-const passwordResetMailer = new LoggingPasswordResetMailer();
+// Real emails go out through Resend when an API key is configured; otherwise the
+// link is written to the logs so the flow stays usable in local dev.
+const passwordResetMailer = env.RESEND_API_KEY
+  ? new ResendPasswordResetMailer(env.RESEND_API_KEY, env.MAIL_FROM)
+  : new LoggingPasswordResetMailer();
 const authService = new AuthService(
   userRepository,
   sessionService,
