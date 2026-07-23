@@ -6,7 +6,8 @@ import { env } from "../config/env";
 const MIGRATIONS_DIR = path.join(import.meta.dir, "migrations");
 
 async function run(): Promise<void> {
-  const sql = postgres(env.DATABASE_URL, { max: 1 });
+  // prepare:false so migrations run against Neon's pooled endpoint too (see client.ts).
+  const sql = postgres(env.DATABASE_URL, { max: 1, prepare: false });
 
   await sql`
     CREATE TABLE IF NOT EXISTS _migrations (
