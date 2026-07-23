@@ -19,6 +19,20 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/*
+ * iOS Safari gives date/time inputs an intrinsic width that ignores
+ * `width: 100%`, which pushed the booking form past the viewport and made the
+ * whole page scroll sideways on phones. Reset the native appearance and let
+ * them shrink inside their container.
+ */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* Respect reduced motion everywhere */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -49,7 +63,7 @@ body {
     @apply mb-1.5 block text-sm font-medium text-ink;
   }
   .field-input {
-    @apply w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-steam focus:border-crema focus:outline-none focus:ring-1 focus:ring-crema;
+    @apply w-full min-w-0 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-steam focus:border-crema focus:outline-none focus:ring-1 focus:ring-crema;
   }
   .eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.18em] text-crema-deep;

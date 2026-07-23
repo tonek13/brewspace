@@ -41,6 +41,7 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
   const [hold, setHold] = useState<HoldDto | null>(null);
   const [holdExpiresAt, setHoldExpiresAt] = useState<number>(0);
   const [working, setWorking] = useState(false);
+  const [releasing, setReleasing] = useState(false);
 
   // Load the static floor map once.
   useEffect(() => {
@@ -117,11 +118,32 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
     }
   }
 
-  function releaseHold() {
+  /** Clears local hold state only — used when the countdown runs out and the
+   *  server-side hold has already expired on its own TTL. */
+  function clearHoldLocally() {
     setHold(null);
     setHoldExpiresAt(0);
     if (selectedSeat) {
       setAvailability((prev) => new Map(prev).set(selectedSeat.id, "AVAILABLE"));
+    }
+  }
+
+  /** Releases the hold on the server so the seat frees up immediately, instead
+   *  of staying locked in Redis until its TTL expires. */
+  async function releaseHold() {
+    if (!hold || !selectedSeat) {
+      clearHoldLocally();
+      return;
+    }
+    setReleasing(true);
+    setError(null);
+    try {
+      await api.releaseHold(selectedSeat.id, hold.token);
+      clearHoldLocally();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not release the hold.");
+    } finally {
+      setReleasing(false);
     }
   }
 
@@ -137,15 +159,15 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
 
       {/* Search controls */}
       <div className="card grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
-        <div>
+        <div className="min-w-0">
           <label className="field-label" htmlFor="date">Date</label>
           <input id="date" type="date" className="field-input" value={date} min={defaultDate()} onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="field-label" htmlFor="time">Start</label>
           <input id="time" type="time" className="field-input" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="field-label" htmlFor="duration">Duration</label>
           <select id="duration" className="field-input" value={durationMinutes} onChange={(e) => setDuration(Number(e.target.value))}>
             {DURATIONS.map((d) => (
@@ -153,7 +175,7 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="field-label" htmlFor="party">Party size</label>
           <input id="party" type="number" min={1} max={12} className="field-input" value={partySize} onChange={(e) => setPartySize(Math.max(1, Number(e.target.value)))} />
         </div>
@@ -167,7 +189,7 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
       {/* Map + selection */}
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-3">
               {(Object.keys(SEAT_STATE_LABEL) as SeatAvailabilityState[])
                 .filter((s) => s !== "OCCUPIED")
@@ -235,16 +257,22 @@ export function BranchBooking({ branch }: { branch: BranchDto }) {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-2xl text-ink">Seat held</h2>
-                <HoldCountdown expiresAt={holdExpiresAt} onExpire={releaseHold} />
+                <HoldCountdown expiresAt={holdExpiresAt} onExpire={clearHoldLocally} />
               </div>
               <p className="text-sm text-steam">
                 {selectedSeat?.name} is yours to confirm. The hold releases automatically when the timer runs out.
               </p>
-              <Button onClick={confirm} className="py-3" loading={working}>
+              <Button onClick={confirm} className="py-3" loading={working} disabled={releasing}>
                 {working ? "Confirming…" : "Confirm reservation"}
               </Button>
-              <Button variant="ghost" onClick={releaseHold} className="py-2.5" disabled={working}>
-                Release hold
+              <Button
+                variant="ghost"
+                onClick={releaseHold}
+                className="py-2.5"
+                loading={releasing}
+                disabled={working}
+              >
+                {releasing ? "Releasing…" : "Release hold"}
               </Button>
             </div>
           )}

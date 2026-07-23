@@ -206,6 +206,11 @@ export const api = {
   // ---- holds & reservations ----
   createHold: (seatId: string, body: { startAt: string; endAt: string; partySize: number }) =>
     apiFetch<HoldDto>(`/api/v1/seats/${seatId}/holds`, { method: "POST", body: JSON.stringify(body) }),
+  releaseHold: (seatId: string, token: string) =>
+    apiFetch<null>(`/api/v1/seats/${seatId}/holds`, {
+      method: "DELETE",
+      body: JSON.stringify({ token }),
+    }),
   confirmReservation: (body: { holdToken: string; notes?: string }) =>
     apiFetch<ReservationDto>("/api/v1/reservations", { method: "POST", body: JSON.stringify(body) }),
   listReservations: (page = 1, pageSize = 20) =>
