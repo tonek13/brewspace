@@ -15,6 +15,19 @@ export const loginRequestSchema = z.object({
 });
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 
+/** Step 1 of a password reset — asks for a reset link to be emailed. */
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email(),
+});
+export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
+
+/** Step 2 — redeems the emailed token and sets a new password. */
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().min(16).max(256),
+  password: z.string().min(10).max(128),
+});
+export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;
+
 export const availabilityQuerySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),

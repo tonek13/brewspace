@@ -8,6 +8,8 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   COOKIE_SECURE: z.coerce.boolean().default(false),
   CORS_ORIGIN: z.string().min(1).default("http://localhost:3000"),
+  /** Public web app URL used to build password reset links. Falls back to CORS_ORIGIN. */
+  APP_WEB_URL: z.string().url().optional(),
   SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 });
 

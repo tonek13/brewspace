@@ -1,6 +1,11 @@
 import type { AuthService } from "../services/auth-service";
 import { serializeUser } from "../serializers/user-serializer";
-import { registerRequestSchema, loginRequestSchema } from "@brewspace/contracts";
+import {
+  registerRequestSchema,
+  loginRequestSchema,
+  passwordResetRequestSchema,
+  passwordResetConfirmSchema,
+} from "@brewspace/contracts";
 import { unauthenticated } from "../../../shared/domain-error";
 import type { SessionCookieJar } from "../../../shared/cookie-jar";
 
@@ -21,6 +26,19 @@ export class AuthController {
     const { user, sessionId } = await this.authService.login(input);
     this.setSessionCookie(cookie, sessionId);
     return { success: true as const, data: serializeUser(user) };
+  }
+
+  async requestPasswordReset(body: unknown) {
+    const input = passwordResetRequestSchema.parse(body);
+    await this.authService.requestPasswordReset(input.email);
+    // Always the same response, so the caller can't tell if the email exists.
+    return { success: true as const, data: null };
+  }
+
+  async resetPassword(body: unknown) {
+    const input = passwordResetConfirmSchema.parse(body);
+    await this.authService.resetPassword(input.token, input.password);
+    return { success: true as const, data: null };
   }
 
   async logout(sessionId: string | undefined, cookie: SessionCookieJar) {

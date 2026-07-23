@@ -10,12 +10,13 @@ export class SessionService {
 
   async create(context: AuthContext): Promise<string> {
     const sessionId = nanoid(32);
-    await this.redis.set(
-      redisKeys.session(sessionId),
-      JSON.stringify(context),
-      "EX",
-      SESSION_TTL_SECONDS,
-    );
+    // The session id is also tracked in a per-user set so a password reset can
+    // revoke every active session, not just the current one.
+    const pipeline = this.redis.pipeline();
+    pipeline.set(redisKeys.session(sessionId), JSON.stringify(context), "EX", SESSION_TTL_SECONDS);
+    pipeline.sadd(redisKeys.userSessions(context.userId), sessionId);
+    pipeline.expire(redisKeys.userSessions(context.userId), SESSION_TTL_SECONDS);
+    await pipeline.exec();
     return sessionId;
   }
 
@@ -26,6 +27,20 @@ export class SessionService {
   }
 
   async destroy(sessionId: string): Promise<void> {
-    await this.redis.del(redisKeys.session(sessionId));
+    const context = await this.resolve(sessionId);
+    const pipeline = this.redis.pipeline();
+    pipeline.del(redisKeys.session(sessionId));
+    if (context) pipeline.srem(redisKeys.userSessions(context.userId), sessionId);
+    await pipeline.exec();
+  }
+
+  /** Revokes every session for a user — used after a password reset. */
+  async destroyAllForUser(userId: string): Promise<void> {
+    const setKey = redisKeys.userSessions(userId);
+    const sessionIds = await this.redis.smembers(setKey);
+    const pipeline = this.redis.pipeline();
+    for (const id of sessionIds) pipeline.del(redisKeys.session(id));
+    pipeline.del(setKey);
+    await pipeline.exec();
   }
 }

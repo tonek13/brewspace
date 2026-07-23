@@ -10,3 +10,8 @@ export const invalidCredentials = () =>
 
 export const accountSuspended = () =>
   new DomainError("UNAUTHENTICATED", "This account has been suspended.");
+
+export const invalidResetToken = () =>
+  new DomainError("VALIDATION_ERROR", "This reset link is invalid or has expired.", [
+    { field: "token", message: "Invalid or expired reset link." },
+  ]);

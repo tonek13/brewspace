@@ -97,7 +97,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           </div>
 
           <div>
-            <label className="field-label" htmlFor="password">Password</label>
+            <div className="flex items-baseline justify-between gap-3">
+              <label className="field-label" htmlFor="password">Password</label>
+              {isLogin && (
+                <Link
+                  href="/forgot-password"
+                  className="mb-1.5 text-xs font-medium text-crema-deep hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <input
               id="password"
               type="password"

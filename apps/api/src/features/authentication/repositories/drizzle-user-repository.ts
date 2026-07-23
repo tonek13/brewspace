@@ -29,4 +29,11 @@ export class DrizzleUserRepository implements UserRepository {
     if (!row) throw new Error("Failed to create user");
     return row;
   }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
 }

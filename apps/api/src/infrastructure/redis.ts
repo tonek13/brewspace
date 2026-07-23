@@ -24,6 +24,10 @@ export const redisKeys = {
   holdToken: (token: string) => `brewspace:hold-token:${token}`,
   menu: (branchId: string) => `brewspace:menu:${branchId}`,
   session: (sessionId: string) => `brewspace:session:${sessionId}`,
+  /** Set of a user's live session ids, so every device can be signed out at once. */
+  userSessions: (userId: string) => `brewspace:user-sessions:${userId}`,
+  /** Keyed by the SHA-256 of the reset token, never the token itself. */
+  passwordReset: (tokenHash: string) => `brewspace:password-reset:${tokenHash}`,
   rateLimit: (bucket: string, key: string) => `brewspace:rate-limit:${bucket}:${key}`,
   events: (branchId: string) => `brewspace:events:${branchId}`,
 } as const;

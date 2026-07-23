@@ -162,6 +162,16 @@ export const api = {
     apiFetch<UserDto>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(body) }),
   logout: () => apiFetch<{ success: true }>("/api/v1/auth/logout", { method: "POST" }),
   me: () => apiFetch<UserDto>("/api/v1/auth/me"),
+  requestPasswordReset: (email: string) =>
+    apiFetch<null>("/api/v1/auth/password-reset-requests", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (token: string, password: string) =>
+    apiFetch<null>("/api/v1/auth/password-resets", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
 
   // ---- branches ----
   listBranches: () => apiFetch<BranchDto[]>("/api/v1/branches"),
