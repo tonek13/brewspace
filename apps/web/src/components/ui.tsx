@@ -61,6 +61,18 @@ export function Spinner({ label }: { label?: string }) {
   );
 }
 
+/**
+ * Full-segment loading fallback for App Router `loading.tsx` files. Renders a
+ * centered spinner so route navigation shows immediate progress feedback.
+ */
+export function PageLoading({ label }: { label?: string }) {
+  return (
+    <div className="flex min-h-[55vh] items-center justify-center">
+      <Spinner label={label} />
+    </div>
+  );
+}
+
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="card flex flex-col items-center gap-1 px-6 py-12 text-center">
